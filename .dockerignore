@@ -1,0 +1,11 @@
+node_modules
+dist
+client/dist
+.git
+.env
+.env.*
+*.md
+deploy
+docker
+scripts
+supabase

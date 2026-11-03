@@ -1,0 +1,10 @@
+node_modules
+dist
+client/dist
+.env
+.env.local
+deploy/production.env
+.DS_Store
+coverage
+*.log
+.supabase
