@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { preloadCardAssets } from "./assets/cardAssets";
 import { App } from "./App";
 import "./styles.css";
+import "./blackjack.css";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) {

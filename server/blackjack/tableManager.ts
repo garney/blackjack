@@ -62,6 +62,7 @@ export type PublicSeat = {
   handTotal: number | null;
   status: SeatStatus;
   practiceChips: number | null;
+  idleEndsAt: number | null;
 };
 
 export type PublicTable = {
@@ -82,6 +83,8 @@ export type PublicTable = {
   dealerHand: PublicCard[];
   dealerTotal: number | null;
   activeSeatIndex: number | null;
+  turnEndsAt: number | null;
+  dealStartsAt: number | null;
   lastRoundResults: RoundResult[];
 };
 
@@ -127,11 +130,14 @@ function publicTable(table: InternalTable): PublicTable {
       hand: seat.hand.map(toPublicCard),
       handTotal: seat.hand.length ? handValue(seat.hand).total : null,
       status: seat.status,
-      practiceChips: table.mode === "practice" ? seat.practiceChips : null
+      practiceChips: table.mode === "practice" ? seat.practiceChips : null,
+      idleEndsAt: null
     })),
     dealerHand,
     dealerTotal,
     activeSeatIndex: table.activeSeatIndex,
+    turnEndsAt: null,
+    dealStartsAt: null,
     lastRoundResults: table.lastRoundResults
   };
 }

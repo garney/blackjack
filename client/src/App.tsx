@@ -30,9 +30,9 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [hostTitle, setHostTitle] = useState("Friday night");
   const [hostBankroll, setHostBankroll] = useState("500");
-  const [hostMin, setHostMin] = useState("5");
-  const [hostMax, setHostMax] = useState("50");
-  const [betAmount, setBetAmount] = useState("10");
+  const [hostMin, setHostMin] = useState("1");
+  const [hostMax, setHostMax] = useState("10");
+  const [betAmount, setBetAmount] = useState("5");
   const socketRef = useRef<Socket | null>(null);
   const profileIdRef = useRef<string | null>(null);
   const tableIdRef = useRef<string | null>(null);
@@ -250,8 +250,8 @@ export function App() {
       {message ? <p className="error banner">{message}</p> : null}
 
       {tab === "lobby" ? (
-        <div className="grid two">
-          <section className="panel">
+        <div className={table ? "felt-page" : "grid two"}>
+          <section className="panel" hidden={Boolean(table)}>
             <h2>Lobby</h2>
             <div className="actions">
               <button
@@ -357,8 +357,26 @@ export function App() {
             </ul>
           </section>
 
-          <section className="panel table-view panel-wide">
+          <section className={table ? "felt-page-table" : "panel table-view panel-wide"}>
             <h2>{table ? table.title : "No table"}</h2>
+            {table && profile ? (
+              <button
+                type="button"
+                className="secondary"
+                disabled={busy}
+                onClick={() =>
+                  void withBusy(async () => {
+                    if (!socket) return;
+                    const host = table.dealerUserId === profile.id && table.mode === "live";
+                    const res = await socketAck<{ ok: boolean; error?: string }>(socket, host ? "blackjack:end-table" : "blackjack:leave");
+                    if (!res.ok) throw new Error(res.error);
+                    if (!host) setTable(null);
+                  })
+                }
+              >
+                {table.dealerUserId === profile.id && table.mode === "live" ? "Close table" : "Leave seat"}
+              </button>
+            ) : null}
             {!table ? <p className="muted">Join practice or host a table.</p> : null}
             {table && profile ? (
               <BlackjackTableView
@@ -389,23 +407,6 @@ export function App() {
                     if (!socket) return;
                     const res = await socketAck<{ ok: boolean; error?: string }>(socket, "blackjack:stand");
                     if (!res.ok) throw new Error(res.error);
-                  })
-                }
-                onLeave={() =>
-                  void withBusy(async () => {
-                    if (!socket) return;
-                    const res = await socketAck<{ ok: boolean; error?: string }>(socket, "blackjack:leave");
-                    if (!res.ok) throw new Error(res.error);
-                    if (table.dealerUserId !== profile.id) setTable(null);
-                  })
-                }
-                onLeaveHost={() =>
-                  void withBusy(async () => {
-                    if (!socket || !table) return;
-                    const tableId = table.id;
-                    const res = await socketAck<{ ok: boolean; error?: string }>(socket, "blackjack:leave-host");
-                    if (!res.ok) throw new Error(res.error);
-                    await watchTableById(tableId);
                   })
                 }
                 onStartBetting={() =>
