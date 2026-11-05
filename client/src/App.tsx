@@ -28,6 +28,7 @@ export function App() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
   const [hostTitle, setHostTitle] = useState("Friday night");
   const [hostBankroll, setHostBankroll] = useState("500");
   const [hostMin, setHostMin] = useState("1");
@@ -364,15 +365,7 @@ export function App() {
                 type="button"
                 className="secondary"
                 disabled={busy}
-                onClick={() =>
-                  void withBusy(async () => {
-                    if (!socket) return;
-                    const host = table.dealerUserId === profile.id && table.mode === "live";
-                    const res = await socketAck<{ ok: boolean; error?: string }>(socket, host ? "blackjack:end-table" : "blackjack:leave");
-                    if (!res.ok) throw new Error(res.error);
-                    if (!host) setTable(null);
-                  })
-                }
+                onClick={() => setConfirmLeave(true)}
               >
                 {table.dealerUserId === profile.id && table.mode === "live" ? "Close table" : "Leave seat"}
               </button>
@@ -435,6 +428,41 @@ export function App() {
               />
             ) : null}
           </section>
+        </div>
+      ) : null}
+
+      {confirmLeave && table && profile ? (
+        <div className="entry-screen" style={{ position: "fixed", inset: 0, zIndex: 40 }}>
+          <div className="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="leave-title">
+            <h2 id="leave-title">Leave table</h2>
+            <p>
+              {table.dealerUserId === profile.id && table.mode === "live"
+                ? "Closing returns the remaining bankroll to your wallet."
+                : "You will give up this seat."}
+            </p>
+            <div className="modal-actions">
+              <button type="button" onClick={() => setConfirmLeave(false)}>
+                Stay
+              </button>
+              <button
+                type="button"
+                className="danger"
+                disabled={busy}
+                onClick={() =>
+                  void withBusy(async () => {
+                    if (!socket) return;
+                    const host = table.dealerUserId === profile.id && table.mode === "live";
+                    const res = await socketAck<{ ok: boolean; error?: string }>(socket, host ? "blackjack:end-table" : "blackjack:leave");
+                    if (!res.ok) throw new Error(res.error);
+                    if (!host) setTable(null);
+                    setConfirmLeave(false);
+                  })
+                }
+              >
+                {table.dealerUserId === profile.id && table.mode === "live" ? "Close and refund" : "Leave seat"}
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
 
